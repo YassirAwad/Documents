@@ -4,9 +4,10 @@ import { createWorld } from './world.js';
 import { Avatar } from './avatar.js';
 import { updatePlayerMovement } from './playerMovement.js';
 import { controls, setupKeyControls } from './keyControls.js'; 
+import { Zombie } from './Zombie.js';
 
 let avatar;
-let mixer;
+let zombies = [];
 
 const scene = new THREE.Scene();
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -17,15 +18,18 @@ document.body.appendChild(renderer.domElement);
 const camera = createCamera();
 const objectsInScene = createWorld(scene);
 
-mixer = new THREE.AnimationMixer(scene);
-avatar = new Avatar(scene, mixer);
+avatar = new Avatar(scene); // Create the avatar
 
-
+// Create zombies and pass the avatar to each one
+for (let i = 0; i < 1; i++) {
+  const zombie = new Zombie(scene, avatar); // Pass avatar as the player reference
+  zombies.push(zombie);
+}
 
 setupKeyControls();
 
 function updateCamera() {
-  const headOffset = new THREE.Vector3(0, (avatar.model.scale.y * 1000) / 2, 0);
+  const headOffset = new THREE.Vector3(0, (avatar.model.scale.y * 1000) / 3.5, 0);
   const headPosition = avatar.model.position.clone().add(headOffset);
 
   if (controls.isThirdPerson && avatar.model) {
@@ -45,12 +49,16 @@ const clock = new THREE.Clock();
 
 function animate() {
   requestAnimationFrame(animate);
-
+  
   const deltaTime = clock.getDelta();
-
+  
   updatePlayerMovement(avatar, controls); 
   updateCamera();
   avatar.update(deltaTime);
+  
+  // Update each zombie
+  zombies.forEach(zombie => zombie.update(deltaTime));
+  
   renderer.render(scene, camera);
 }
 
